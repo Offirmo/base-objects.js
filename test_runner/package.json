@@ -1,0 +1,15 @@
+{
+	"name": "extended-exceptions-test-runner",
+	"description": "node test runner for extended-exceptions.js",
+	"version": "1.0.0",
+	"private": true,
+	"dependencies": {
+		"amdefine":           "latest",
+		"backbone":           "latest",
+		"chai":               "latest",
+		"jquery":             "latest",
+		"mocha":              "latest",
+		"requirejs":          "latest",
+		"underscore":         "latest"
+	}
+}

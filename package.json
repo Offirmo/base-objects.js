@@ -1,0 +1,21 @@
+{
+	"name": "base-objects.js",
+	"version": "0.5.0",
+	"description": "Base javascript objects with convenient inheritance and some shared features for node & browser, AMD",
+	"keywords": [
+		"inheritance",
+		"browser",
+		"server"
+	],
+	"license": "public domain",
+	"author": "Offirmo <offirmo.net@gmail.com> (http://offirmo.net)",
+	"repository": {
+		"type": "git",
+		"url":  "https://github.com/Offirmo/base-objects.js.git"
+	},
+	"dependencies": {
+	},
+	"engines": {
+		"node": ">=0.6"
+	}
+}
