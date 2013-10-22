@@ -27,7 +27,6 @@ requirejs.config({
 		// shim plugins
 		"backbone"         : "bower_components/backbone/backbone",
 		"chai"             : "bower_components/chai/chai",
-		"jquery"           : "bower_components/jquery/jquery",
 		"mocha"            : "bower_components/mocha/mocha",
 		"underscore"       : "bower_components/underscore/underscore",
 		// AMD plugins (dirs or direct)
@@ -38,18 +37,13 @@ requirejs.config({
 	/////////////////////
 	shim: {
 		"backbone": {
-			deps: [ "underscore", "jquery" ], // Note : bb needs jQuery for some features
+			deps: [ "underscore" ],
 			exports: "Backbone"
 		},
-		"jquery": {
-			exports: [ "$", "jQuery" ]
-		},
 		"mocha" : {
-			deps: [
-				"jquery"
-			],
+			deps: [ ],
 			exports: "mocha",
-			init: function (jquery) {
+			init: function (/*jquery*/) {
 				console.log("Hello from mocha shim ! Setting up mocha...");
 				this.mocha.setup("bdd");
 				return this.mocha;

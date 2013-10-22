@@ -7,9 +7,7 @@
 		"amdefine":           "latest",
 		"backbone":           "latest",
 		"chai":               "latest",
-		"jquery":             "latest",
 		"mocha":              "latest",
-		"requirejs":          "latest",
 		"underscore":         "latest"
 	}
 }

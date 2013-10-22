@@ -14,8 +14,9 @@
 		"url":  "https://github.com/Offirmo/base-objects.js.git"
 	},
 	"dependencies": {
+		"backbone": "latest"
 	},
 	"engines": {
-		"node": ">=0.6"
+		"node":     ">=0.6"
 	}
 }

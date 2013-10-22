@@ -18,7 +18,6 @@
 
 		requirejs(
 		[
-			"jquery",
 			"mocha",
 			"domReady!",
 
@@ -30,9 +29,9 @@
 			"../offinh/spec/offinh_startable_object_spec",
 			"../offinh/spec/offinh_named_object_spec"
 		],
-		function($) {
+		function() {
 			mocha.checkLeaks();
-			mocha.globals(["jQuery"]);
+			//mocha.globals(["jQuery"]); no need
 
 			console.log("Starting tests...");
 			mocha.run();
