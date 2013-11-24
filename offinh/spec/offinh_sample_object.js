@@ -32,6 +32,7 @@ function(_) {
 	////////////////////////////////////
 	//defaults. = ;
 
+	// init fn for creating unshared member variables
 	methods.init = function() {
 		// init of member objects
 		//...
