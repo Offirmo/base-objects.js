@@ -9,6 +9,7 @@
 	],
 	"license": "public domain",
 	"author": "Offirmo <offirmo.net@gmail.com> (http://offirmo.net)",
+	"homepage": "https://github.com/Offirmo/base-objects.js",
 	"repository": {
 		"type": "git",
 		"url":  "https://github.com/Offirmo/base-objects.js.git"
@@ -18,5 +19,11 @@
 	},
 	"engines": {
 		"node":     ">=0.10.0"
+	},
+	"bugs": {
+		"url": "https://github.com/Offirmo/base-objects.js/issues"
+	},
+	"scripts": {
+		"test": "cd test_runner && npm install && make"
 	}
 }
