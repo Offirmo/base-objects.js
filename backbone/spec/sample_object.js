@@ -11,40 +11,39 @@ define(
 function(_, NamedObject) {
 	"use strict";
 
-	var Constants = {
+	var constants = {
 		// ...
 	};
+	Object.freeze(constants);
+
+
+	function validate_xyz(attrs, options) {
+
+		// return nothing
+	}
+
 
 	var ParentModel = NamedObject;
-	var parentModel_instance = new ParentModel;
+	var parentModel_reference_instance = new ParentModel;
+
 	var ExampleObject = ParentModel.extend({
 
 		defaults: function(){
-			var this_class_defaults = {
+			ParentModel.prototype.defaults.call(this);
+
+			this.set({
+				serialization_version: 1,
 				url: 'exampleobject' //< (backbone) url fragment for this object
-			};
-
-			// merge with parent's defaults if needed
-			var parent_defaults = new ParentModel().attributes;
-			var defaults = _.defaults(this_class_defaults, parent_defaults);
-
-			// also merge with parent's constants
-			defaults.constants = _.defaults(Constants, parentModel_instance.get('constants'));
-
-			return defaults;
+			});
 		},
 
-		validate: function(attrs, options) {
+		initialize: function(){
+			ParentModel.prototype.initialize.call(this);
 
-			// in this case, we can reuse parent validation
-			var parent_validation = (new ParentModel).validate(attrs, options);
-			if(typeof parent_validation !== 'undefined') {
-				return parent_validation;
-			}
-
-			// TODO own validation
+			this.add_validation_fn(validate_xyz);
 		},
 
+		// override of parent
 		sync: function(method, model, options)
 		{
 			options || (options = {});
@@ -63,6 +62,9 @@ function(_, NamedObject) {
 		}
 
 	});
+
+	// allow "class member" like access to constants
+	ExampleObject.constants = constants;
 
 	return ExampleObject;
 }); // requirejs module

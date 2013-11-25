@@ -2,11 +2,12 @@
 	"name": "base-objects-test-runner",
 	"version": "1.0.0",
 	"dependencies": {
+		"underscore":              "latest",
 		"backbone":                "latest",
+
 		"chai":                    "latest",
 		"mocha":                   "latest",
 		"requirejs":               "latest",
-		"requirejs-domready":      "latest",
-		"underscore":              "latest"
+		"requirejs-domready":      "latest"
 	}
 }

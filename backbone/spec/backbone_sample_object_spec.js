@@ -3,7 +3,7 @@ if (typeof define !== 'function') { var define = require('amdefine')(module); }
 define(
 [
 	'chai',
-	'base-objects/backbone/example_object',
+	'base-objects/backbone/spec/sample_object',
 	'base-objects/backbone/named_object',
 	'mocha'
 ],

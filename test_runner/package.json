@@ -4,10 +4,13 @@
 	"version": "1.0.0",
 	"private": true,
 	"dependencies": {
-		"base-objects":   "latest",
+		"underscore":              "latest",
+		"backbone":                "latest",
+
+		"base-objects":            "latest",
 		
-		"amdefine":       "latest",
-		"chai":           "latest",
-		"mocha":          "latest"
+		"amdefine":                "latest",
+		"chai":                    "latest",
+		"mocha":                   "latest"
 	}
 }

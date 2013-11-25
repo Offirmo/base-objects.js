@@ -34,6 +34,14 @@ function(chai, CUT) {
 				out.get('serialization_version').should.exist.and.equal(0);
 			});
 
+			it('should allow access to constants', function() {
+				CUT.constants.should.exist;
+				CUT.constants.fetch_origin_none.should.equals('none');
+
+				//var out = new CUT();
+				//out.get('serialization_version').should.exist.and.equal(0);
+			});
+
 		});
 
 		describe('serialization version', function() {
@@ -84,14 +92,22 @@ function(chai, CUT) {
 
 		}); // describe feature
 
+		describe('validation helpers', function() {
+
+			it('should allow easy addition of validation methods');
+
+		});
+
 		describe('sync helpers', function() {
 
-			it('should generate its url correctly', function() {
+			it('should generate its url correctly in simple case', function() {
 				// just testing backbone features
 				var out = new CUT();
 				out.set('id', 123);
 				out.compute_url().should.equal('basemodel/123');
 			});
+
+			it('should generate its url correctly in complex case');
 
 			it('should use Backbone features', function() {
 				// just testing backbone features
