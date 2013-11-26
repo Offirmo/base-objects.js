@@ -32,14 +32,14 @@ function(_, NamedObject) {
 			ParentModel.prototype.defaults.call(this);
 
 			this.set({
-				serialization_version: 1,
-				url: 'exampleobject' //< (backbone) url fragment for this object
+				serialization_version: 1
 			});
 		},
 
 		initialize: function(){
 			ParentModel.prototype.initialize.call(this);
 
+			this.url = 'sampleobject'; //< (backbone) url fragment for this object
 			this.add_validation_fn(validate_xyz);
 		},
 

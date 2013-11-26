@@ -36,7 +36,6 @@ function(_, BaseObject) {
 			ParentModel.prototype.defaults.call(this);
 
 			this.set({
-				url: 'namedobject', //< (backbone) url fragment for this object
 				denomination: default_denomination
 			});
 		},
@@ -44,6 +43,7 @@ function(_, BaseObject) {
 		initialize: function(){
 			ParentModel.prototype.initialize.call(this);
 
+			this.url = 'namedobject'; //< (backbone) url fragment for this object
 			this.add_validation_fn(validate_denomination);
 		},
 

@@ -46,57 +46,118 @@ function(_, Backbone) {
 	var BaseObject = Backbone.Model.extend({
 
 		defaults: function(){
-
 			// model properties
 			this.set({
-
 				/////// serialization control (in progress) ///////
 				// incrementing this code each time the schema changes
 				// allows to match serialization code and serialized data
-				serialization_version: 0,
-
-				// attributes that should not be persisted
-				// (usually because constants or client-only)
-				// TOREVIEW separate client only / server only
-				attributes_serialization_blacklist: [
-					'constants', 'aggregation_parent', 'aggregation_parent_only_child',
-					'last_fetch_origin', 'last_server_fetch_date',
-					'cache_strategy', 'cache_max_duration',
-					'restlink_client'
-				],
-
-
-				/////// URL generation (in progress) ///////
-				url: 'basemodel', //< (backbone) url fragment for this object (should be overriden by derived classe)
-				aggregation_parent: undefined, //< parent/owner of this object
-				//  important for building a correct url : parent/<id>/child/<id>
-				// without using Backbone collections
-				aggregation_parent_only_child: false, //< by default, consider there are
-				// several children like us under the parent
-				// so we'll add our id into the url
+				serialization_version: 0 // default value, to be overriden
 			});
 		},
 
 		initialize: function() {
-
 			// meta properties (not in the model)
 
 			/////// extensible validation (in progress) ///////
 			this.validation_methods = [];
 
-			// add validations
+			// add validations for this object
 			this.add_validation_fn( validate_serialization_version );
 
+			/////// Improved change monitor (in progress) ///////
+			this.declare_in_sync();
+
 			/////// cache control (in progress) ///////
-			this.last_fetch_origin = constants.fetch_origin_none; //< Origin of last fetch ?
+			/*this.last_fetch_origin = constants.fetch_origin_none; //< Origin of last fetch ?
 			this.last_server_fetch_date = undefined; //< TOREVIEW
 			this.cache_strategy = constants.cache_strategy_cachable; // by default
-			this.cache_max_duration = undefined; // TOREVIEW
+			this.cache_max_duration = undefined; // TOREVIEW*/
 
-			this.restlink_client = undefined; //< the restlink client to which we'll sync
+			/////// serialization control (in progress) ///////
+			 // attributes that should not be persisted
+			 // (usually because constants or client-only)
+			 // TOREVIEW separate client only / server only
+			 /*attributes_serialization_blacklist: [
+			 'constants', 'aggregation_parent', 'aggregation_parent_only_child',
+			 'last_fetch_origin', 'last_server_fetch_date',
+			 'cache_strategy', 'cache_max_duration',
+			 'restlink_client'
+			 ],*/
 
+
+			 /////// URL generation (in progress) ///////
+			this.url = 'basemodel'; //< (backbone) url fragment for this object (should be overriden by derived classe)
+			this.aggregation_parent = undefined; //< parent/owner of this object
+			//  important for building a correct url : parent/<id>/child/<id>
+			// without using Backbone collections
+			this.aggregation_parent_only_child = false; //< by default, consider there are
+			// several children like us under the parent
+			// so we'll add our id into the url
+
+			// backend
+			//this.restlink_client = undefined; //< the restlink client to which we'll sync
 		},
 
+
+		/////// Improved change monitor (in progress) ///////
+		// override of set()
+		set: function OffirmoBaseObjectOverridenSet(key, val, options) {
+			if (key == null) return this;
+
+			// Handle both `"key", value` and `{key: value}` -style arguments.
+			var attrs;
+			if (typeof key === 'object') {
+				attrs = key;
+				options = val;
+			} else {
+				(attrs = {})[key] = val;
+			}
+
+			// apply real func
+			var return_val = Backbone.Model.prototype.set.apply(this, arguments);
+
+			// loop over new values
+			if(!this.hasOwnProperty('previous_attributes_')) {
+				// enhanced changes detection not initialized :
+				// we must be at object creation
+				// ignore.
+				return return_val;
+			}
+
+			for(var key in attrs)
+			{
+				if(attrs.hasOwnProperty(key))
+				{
+					// check against *real* value, just in case
+					var new_value = this.attributes[key];
+					if(this.previous_attributes_.hasOwnProperty(key) && this.previous_attributes_[key] === new_value) {
+						// set back to original value
+						//console.log("Offirmo cancelling change : " + key + " -> " + new_value);
+						delete this.changed_attributes_[ key ];
+					}
+					else {
+						// record new value
+						//console.log("Offirmo detecting change : " + key + " -> " + new_value);
+						this.changed_attributes_[key] = new_value;
+					}
+				}
+			}
+
+			return return_val;
+		},
+		declare_in_sync: function() {
+			this.changed_attributes_ = {};
+			this.previous_attributes_ = _.clone( this.attributes );
+		},
+		previous_attributes: function() {
+			return _.clone( this.previous_attributes_ );
+		},
+		changed_attributes: function() {
+			return _.clone( this.changed_attributes_ );
+		},
+
+
+		/////// extensible validation (in progress) ///////
 		add_validation_fn: function(validation_fn) {
 			this.validation_methods.push(validation_fn);
 		},
@@ -120,14 +181,133 @@ function(_, Backbone) {
 			// or else return nothing
 		},
 
+
+		/////// backend utilities (in progress) ///////
 		set_restlink_client: function(client) {
-			this.restlink_client = client;
+			this.restlink_ = client;
+		},
+		set_cache: function(cache) {
+			this.cache_ = cache;
+		},
+		set_store: function(store) {
+			this.store_ = store;
+		},
+
+
+		// override of default.
+		// this in an accepted technique
+		sync: function(method, model, options) {
+			console.log("Footprint sync('"+method+"',...) called with ", arguments);
+			console.log("Sync begin - Current changes = ", model.changed_attributes());
+
+			var return_val;
+			if(model.hasOwnProperty('cache_') && typeof model.cache_ !== 'undefined') {
+				// TODO hit cache if needed
+			}
+
+			if(model.hasOwnProperty('store_') && typeof model.store_ !== 'undefined') {
+				return_val = model.sync_to_store(method, model, options);
+			}
+			else if(model.hasOwnProperty('restlink_') && typeof model.restlink_ !== 'undefined') {
+				return_val = model.sync_to_restlink(method, model, options);
+			}
+			else {
+				// fallback to original Backbone ?
+			}
+
+			console.log("Sync end - Current changes = ", model.changed_attributes());
+			return return_val;
+		},
+
+		// specialized version to be used with a store
+		sync_to_store: function(method, model, options) {
+			console.log("sync_to_store begin('"+method+"',...) called with ", arguments);
+
+			var id = this.compute_url();
+
+			if(method === "read") {
+				if(typeof id === 'undefined')
+					throw new Error("can't fetch without id !");
+				var data = model.store_.get(id);
+				// apply fetched data
+				model.set(data);
+				// all in sync
+				model.declare_in_sync();
+			}
+			else if(method === "create") {
+				// use Backbone id as server id
+				model.id = model.cid;
+				model.store_.set(id, model.attributes);
+				model.declare_in_sync();
+			}
+			else if(method === "update") {
+				if(typeof id === 'undefined')
+					throw new Error("can't update without id !");
+				model.store_.set(id, model.attributes);
+				model.declare_in_sync();
+			}
+			else if(method === "delete") {
+				if(typeof id === 'undefined')
+					throw new Error("can't delete without id !");
+				model.store_.set(id, undefined);
+				model.id = undefined;
+				model.declare_in_sync();
+			}
+			else {
+				// WAT ?
+			}
+
+			console.log("sync_to_store end - Current changes = ", model.changed_attributes());
+			// todo return promise !
+		},
+
+		// specialized version to be used with a restlink client
+		sync_to_restlink: function(method, model, options) {
+			console.log("sync_to_restlink begin('"+method+"',...) called with ", arguments);
+
+			var id = this.compute_url(); // may fail
+			var request = model.restlink_.make_new_request();
+
+			if(method === "read") {
+				if(typeof id === 'undefined')
+					throw new Error("can't fetch without id !");
+				var data = model.store_.get(id);
+				// apply fetched data
+				model.set(data);
+				// all in sync
+				model.declare_in_sync();
+			}
+			else if(method === "create") {
+				// use Backbone id as server id
+				model.id = model.cid;
+				model.store_.set(id, model.attributes);
+				model.declare_in_sync();
+			}
+			else if(method === "update") {
+				if(typeof id === 'undefined')
+					throw new Error("can't update without id !");
+				model.store_.set(id, model.attributes);
+				model.declare_in_sync();
+			}
+			else if(method === "delete") {
+				if(typeof id === 'undefined')
+					throw new Error("can't delete without id !");
+				model.store_.set(id, undefined);
+				model.id = undefined;
+				model.declare_in_sync();
+			}
+			else {
+				// WAT ?
+			}
+
+			console.log("sync_to_restlink end - Current changes = ", model.changed_attributes());
+			// todo return promise !
 		},
 
 		// if asked for a refresh,
 		// do this object really needs a refresh from the server
 		// or is it still valid according to its cache status ?
-		really_needs_refresh: function() {
+		/*really_needs_refresh: function() {
 			var cache_strategy = this.get('cache_strategy');
 
 			if(cache_strategy === Constants.always_in_sync) {
@@ -143,19 +323,19 @@ function(_, Backbone) {
 			// ...
 
 			return true; // for now
-		},
+		},*/
 
+		// to be overriden if needed
 		compute_id: function() {
 			return this.get('id'); // by default
 		},
 
 		compute_url: function() {
 			var this_url = '';
-			var aggregation_parent = this.get('aggregation_parent');
-			if(aggregation_parent) {
-				this_url = aggregation_parent.compute_url() + '/';
+			if(this.aggregation_parent) {
+				this_url = this.aggregation_parent.compute_url() + '/';
 			}
-			this_url = this_url + this.get('url') + '/' + this.compute_id();
+			this_url = this_url + this.url + '/' + this.compute_id();
 			return this_url;
 		}
 

@@ -93,7 +93,7 @@ function(chai, CUT, CUTParent) {
 				// just testing backbone features
 				var out = new CUT();
 				out.set('denomination', '123');
-				out.compute_url().should.equal('exampleobject/123');
+				out.compute_url().should.equal('sampleobject/123');
 			});
 
 			it('should be unpersistable', function() {
