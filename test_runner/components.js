@@ -29,8 +29,9 @@ requirejs.config({
 		"chai"             : "bower_components/chai/chai",
 		"mocha"            : "bower_components/mocha/mocha",
 		"underscore"       : "bower_components/underscore/underscore",
+		"when"             : "bower_components/when/when",
 		// AMD plugins (dirs or direct)
-		"base-objects" : ".." // dir
+		"base-objects"     : ".." // dir
 	},
 
 

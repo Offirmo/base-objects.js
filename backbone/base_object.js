@@ -1,9 +1,13 @@
-/* A 'base' Backbone object from which all offirmo objects will inherit
- * useful to add some utilities, namely :
- * - serialization version (+ corresponding validation)
- * - caching strategy with associated infos
+/* A 'base' Backbone object enhancing a default Backbone object :
  * - extensible validation
+ * - by default, a 'serialization version' property (+ corresponding validation)
+ * - save(), fetch() and sync() now uniformly returns when promises
+ * - improved attributes change monitor
+ * - selector to various sync implementations
+ *
+ * In progress / toreview
  * - overriden id/url generation
+ * - caching strategy with associated infos
  * - ...
  */
 if (typeof define !== 'function') { var define = require('amdefine')(module); }
@@ -11,9 +15,10 @@ if (typeof define !== 'function') { var define = require('amdefine')(module); }
 define(
 [
 	'underscore',
-	'backbone'
+	'backbone',
+	'when'
 ],
-function(_, Backbone) {
+function(_, Backbone, when) {
 	"use strict";
 
 	// constants, all grouped under a common property for readability
@@ -29,6 +34,7 @@ function(_, Backbone) {
 	Object.freeze(constants);
 
 
+	// validation methods :
 	function validate_serialization_version(attrs, options) {
 		if(_.isUndefined(attrs.serialization_version)) {
 			return 'Must have a serialization version !';
@@ -39,9 +45,51 @@ function(_, Backbone) {
 		if(attrs.serialization_version < 0) {
 			return 'Serialization version must be >= 0 !';
 		}
-		// return nothing
+		// return nothing = OK
 	}
 
+
+	// utility to uniformize API  XXX IN PROGRESS TOREVIEW XXX
+	// return :
+	// - a promise
+	// - resolved with [ model, response, options ]
+	// - failed with [ model, xhr, options ]
+
+	function uniformize_JjqXHRReturningFunc(func, that, arguments_) {
+		// immediately launch the method so it can begin to work
+		var jqXhr = func.apply(that, arguments_);
+		// now prepare our interface
+		var when_deferred = when.defer();
+		if(typeof jqXhr === 'undefined') {
+			// that's bad : the called function doesn't follow the expect API
+			console.error("Error when calling func ", func, ", returned undef...");
+			when_deferred.reject( [ this ] /* todo improve */ );
+		}
+		else if(jqXhr === false) {
+			// Backbone may do that.
+			// that's precisely what we want to normalize
+			when_deferred.reject( [ this ] /* todo improve */ );
+		}
+		else if(typeof jqXhr === 'Object') {
+			// Backbone may do that.
+			// that's precisely what we want to normalize
+			when_deferred.reject( [ this ] /* todo improve */ );
+		}
+		else
+		{
+			// plug jqXhr to the deferred
+			// from Backbone doc :
+			// success and error callbacks (...) are passed (model, response, options) and (model, xhr, options) as arguments,
+
+			jqXhr.done(function( model, response, options ) {
+				when_deferred.resolve( [ model, response, options ] );
+			});
+			jqXHR.fail(function( model, xhr, options ) {
+				when_deferred.reject( [ model, xhr, options ] );
+			});
+		}
+		return when_deferred.promise;
+	}
 
 	var BaseObject = Backbone.Model.extend({
 
@@ -86,7 +134,7 @@ function(_, Backbone) {
 
 
 			 /////// URL generation (in progress) ///////
-			this.url = 'basemodel'; //< (backbone) url fragment for this object (should be overriden by derived classe)
+			this.url = 'basemodel'; //< (backbone) url fragment for this object (should be overriden by derived class)
 			this.aggregation_parent = undefined; //< parent/owner of this object
 			//  important for building a correct url : parent/<id>/child/<id>
 			// without using Backbone collections
@@ -99,7 +147,7 @@ function(_, Backbone) {
 		},
 
 
-		/////// Improved change monitor (in progress) ///////
+		/////// Improved change monitor ///////
 		// override of set()
 		set: function OffirmoBaseObjectOverridenSet(key, val, options) {
 			if (key == null) return this;
@@ -157,7 +205,7 @@ function(_, Backbone) {
 		},
 
 
-		/////// extensible validation (in progress) ///////
+		/////// extensible validation ///////
 		add_validation_fn: function(validation_fn) {
 			this.validation_methods.push(validation_fn);
 		},
@@ -200,28 +248,32 @@ function(_, Backbone) {
 			console.log("Footprint sync('"+method+"',...) called with ", arguments);
 			console.log("Sync begin - Current changes = ", model.changed_attributes());
 
-			var return_val;
+			// XXX todo intercept success and error callbacks ?
+
+			var when_promise;
 			if(model.hasOwnProperty('cache_') && typeof model.cache_ !== 'undefined') {
 				// TODO hit cache if needed
 			}
 
 			if(model.hasOwnProperty('store_') && typeof model.store_ !== 'undefined') {
-				return_val = model.sync_to_store(method, model, options);
+				// sync to key/value store
+				when_promise = model.sync_to_store(method, model, options);
 			}
 			else if(model.hasOwnProperty('restlink_') && typeof model.restlink_ !== 'undefined') {
-				return_val = model.sync_to_restlink(method, model, options);
+				when_promise = model.sync_to_restlink(method, model, options);
 			}
 			else {
-				// fallback to original Backbone ?
+				when_promise = uniformize_JjqXHRReturningFunc(Backbone.Model.prototype.sync, this, arguments);
 			}
 
 			console.log("Sync end - Current changes = ", model.changed_attributes());
-			return return_val;
+			return when_promise;
 		},
 
 		// specialized version to be used with a store
 		sync_to_store: function(method, model, options) {
 			console.log("sync_to_store begin('"+method+"',...) called with ", arguments);
+			var when_deferred = when.defer();
 
 			var id = this.compute_url();
 
@@ -233,18 +285,21 @@ function(_, Backbone) {
 				model.set(data);
 				// all in sync
 				model.declare_in_sync();
+				when_deferred.resolve( [model, undefined, options] );
 			}
 			else if(method === "create") {
 				// use Backbone id as server id
 				model.id = model.cid;
 				model.store_.set(id, model.attributes);
 				model.declare_in_sync();
+				when_deferred.resolve( [model, undefined, options] );
 			}
 			else if(method === "update") {
 				if(typeof id === 'undefined')
 					throw new Error("can't update without id !");
 				model.store_.set(id, model.attributes);
 				model.declare_in_sync();
+				when_deferred.resolve( [model, undefined, options] );
 			}
 			else if(method === "delete") {
 				if(typeof id === 'undefined')
@@ -252,56 +307,23 @@ function(_, Backbone) {
 				model.store_.set(id, undefined);
 				model.id = undefined;
 				model.declare_in_sync();
+				when_deferred.resolve( [model, undefined, options] );
 			}
 			else {
 				// WAT ?
 			}
 
 			console.log("sync_to_store end - Current changes = ", model.changed_attributes());
-			// todo return promise !
+			return when_deferred.promise;
 		},
 
-		// specialized version to be used with a restlink client
-		sync_to_restlink: function(method, model, options) {
-			console.log("sync_to_restlink begin('"+method+"',...) called with ", arguments);
 
-			var id = this.compute_url(); // may fail
-			var request = model.restlink_.make_new_request();
-
-			if(method === "read") {
-				if(typeof id === 'undefined')
-					throw new Error("can't fetch without id !");
-				var data = model.store_.get(id);
-				// apply fetched data
-				model.set(data);
-				// all in sync
-				model.declare_in_sync();
-			}
-			else if(method === "create") {
-				// use Backbone id as server id
-				model.id = model.cid;
-				model.store_.set(id, model.attributes);
-				model.declare_in_sync();
-			}
-			else if(method === "update") {
-				if(typeof id === 'undefined')
-					throw new Error("can't update without id !");
-				model.store_.set(id, model.attributes);
-				model.declare_in_sync();
-			}
-			else if(method === "delete") {
-				if(typeof id === 'undefined')
-					throw new Error("can't delete without id !");
-				model.store_.set(id, undefined);
-				model.id = undefined;
-				model.declare_in_sync();
-			}
-			else {
-				// WAT ?
-			}
-
-			console.log("sync_to_restlink end - Current changes = ", model.changed_attributes());
-			// todo return promise !
+		/////// API uniformization (in progress) ///////
+		save: function() {
+			return uniformize_JjqXHRReturningFunc(Backbone.Model.prototype.save, this, arguments);
+		},
+		fetch: function() {
+			return uniformize_JjqXHRReturningFunc(Backbone.Model.prototype.fetch, this, arguments);
 		},
 
 		// if asked for a refresh,
@@ -327,7 +349,7 @@ function(_, Backbone) {
 
 		// to be overriden if needed
 		compute_id: function() {
-			return this.get('id'); // by default
+			return this.id; // by default
 		},
 
 		compute_url: function() {
@@ -335,7 +357,7 @@ function(_, Backbone) {
 			if(this.aggregation_parent) {
 				this_url = this.aggregation_parent.compute_url() + '/';
 			}
-			this_url = this_url + this.url + '/' + this.compute_id();
+			this_url = this_url + /* '/' +*/ this.url + '/' + this.compute_id();
 			return this_url;
 		}
 

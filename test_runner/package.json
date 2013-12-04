@@ -6,6 +6,7 @@
 	"dependencies": {
 		"underscore":              "latest",
 		"backbone":                "latest",
+		"when":                    "latest",
 
 		"base-objects":            "latest",
 		

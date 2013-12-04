@@ -8,6 +8,7 @@
 		"chai":                    "latest",
 		"mocha":                   "latest",
 		"requirejs":               "latest",
-		"requirejs-domready":      "latest"
+		"requirejs-domready":      "latest",
+		"when":                    "latest"
 	}
 }

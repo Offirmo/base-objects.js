@@ -4,6 +4,8 @@
 	<title>Base Objects Mocha Tests</title>
 	<link rel="stylesheet" href="bower_components/mocha/mocha.css" />
 	<script data-main="components.js" src="bower_components/requirejs/require.js"></script>
+
+	<!-- <script src="../mixins/spec/mixin_startable_object_spec"></script> -->
 </head>
 
 <body>
@@ -21,6 +23,8 @@
 			"mocha",
 			"domReady!",
 
+			"../mixins/spec/startable_spec",
+
 			"../backbone/spec/backbone_base_object_spec",
 			"../backbone/spec/backbone_named_object_spec",
 			"../backbone/spec/backbone_sample_object_spec",
@@ -31,7 +35,6 @@
 		],
 		function() {
 			mocha.checkLeaks();
-			//mocha.globals(["jQuery"]); no need
 
 			console.log("Starting tests...");
 			mocha.run();
