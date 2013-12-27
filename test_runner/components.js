@@ -17,7 +17,9 @@ requirejs.config({
 	map: {
 		'*': {
 			// an extension to be able to wait for the DOM to be ready
-			"domReady": "bower_components/requirejs-domready/domReady"
+			"domReady": "bower_components/requirejs-domready/domReady",
+			// underscore is now replaced by lodash
+			"underscore": "lodash"
 		}
 	},
 
@@ -25,13 +27,16 @@ requirejs.config({
 	/////////////////////
 	paths: {
 		// shim plugins
-		"backbone"         : "bower_components/backbone/backbone",
-		"chai"             : "bower_components/chai/chai",
-		"mocha"            : "bower_components/mocha/mocha",
-		"underscore"       : "bower_components/underscore/underscore",
-		"when"             : "bower_components/when/when",
+		"backbone"           : "bower_components/backbone/backbone",
+		"chai"               : "bower_components/chai/chai",
+		"lodash"             : "bower_components/lodash/dist/lodash",
+		"mocha"              : "bower_components/mocha/mocha",
+		"when"               : "bower_components/when/when",
+		"store"              : "bower_components/store.js/store",
 		// AMD plugins (dirs or direct)
-		"base-objects"     : ".." // dir
+		"base-objects"       : "..", // dir
+		"extended-exceptions": "../../extended-exceptions.js/extended_exceptions",
+		"generic_store"      : "../../generic_store.js" // dir
 	},
 
 
@@ -41,6 +46,9 @@ requirejs.config({
 			deps: [ "underscore" ],
 			exports: "Backbone"
 		},
+		"lodash": {
+			exports: "_"
+		},
 		"mocha" : {
 			deps: [ ],
 			exports: "mocha",
@@ -49,9 +57,6 @@ requirejs.config({
 				this.mocha.setup("bdd");
 				return this.mocha;
 			}
-		},
-		"underscore": {
-			exports: "_"
 		}
 	}
 });

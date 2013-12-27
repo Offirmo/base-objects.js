@@ -12,6 +12,7 @@ function(chai, _, CUT) {
 
 	var expect = chai.expect;
 	chai.should();
+	chai.Assertion.includeStack = true; // defaults to false
 
 	describe('Backbone BaseObject', function() {
 
@@ -44,7 +45,7 @@ function(chai, _, CUT) {
 
 			it('should allow access to constants', function() {
 				CUT.constants.should.exist;
-				CUT.constants.fetch_origin_none.should.equals('none');
+				//CUT.constants.fetch_origin_none.should.equals('none');
 
 				//var out = new CUT();
 				//out.get('serialization_version').should.exist.and.equal(0);
@@ -100,52 +101,9 @@ function(chai, _, CUT) {
 
 		}); // describe feature
 
-		describe('validation helpers', function() {
 
-			it('should allow easy addition of validation methods');
 
-		});
-
-		describe('sync helpers', function() {
-
-			it('should properly monitor all changes : set()', function() {
-				var out = new CUT();
-
-				var attributes_snapshot = _.clone( out.attributes );
-
-				// let's do a change
-				out.set("foo", "bar");
-				expect( out.previous_attributes() ).to.deep.equals( attributes_snapshot );
-				expect( out.changed_attributes() ).to.deep.equals( { "foo": "bar" } );
-
-				// let's do multiple changes
-				out.set({"toto": "titi", "foo": "bar2"});
-				expect( out.previous_attributes() ).to.deep.equals( attributes_snapshot );
-				expect( out.changed_attributes() ).to.deep.equals( { "foo": "bar2", "toto": "titi" } );
-
-				// sync
-				out.declare_in_sync();
-				attributes_snapshot = _.clone( out.attributes ); // update
-				expect( attributes_snapshot ).to.deep.equals( {
-					serialization_version: 0,
-					"foo": "bar2",
-					"toto": "titi"
-				});
-				expect( out.previous_attributes() ).to.deep.equals( attributes_snapshot );
-				expect( out.changed_attributes() ).to.deep.equals( {} );
-
-				// let's do a change
-				out.set("foo", "bar3");
-				expect( out.previous_attributes() ).to.deep.equals( attributes_snapshot );
-				expect( out.changed_attributes() ).to.deep.equals( { "foo": "bar3" } );
-
-				// let's cancel it
-				out.set("foo", "bar2");
-				expect( out.previous_attributes() ).to.deep.equals( attributes_snapshot );
-				expect( out.changed_attributes() ).to.deep.equals( { } ); // nothing more
-			});
-
-			it('should properly monitor all changes : unset()');
+		describe('url generation reimpl', function() {
 
 			it('should generate its url correctly in simple case', function() {
 				// just testing backbone features
@@ -160,15 +118,25 @@ function(chai, _, CUT) {
 				// just testing backbone features
 				var out = new CUT();
 				/*console.log('id      = ' + out.get('id'));
-				console.log('url     = ' + out.get('url'));
-				console.log('urlRoot = ' + out.get('urlRoot'));
-				console.log('cid     = ' + out.get('cid'));
-				console.log('curl    = ' + out.compute_url());*/
+				 console.log('url     = ' + out.get('url'));
+				 console.log('urlRoot = ' + out.get('urlRoot'));
+				 console.log('cid     = ' + out.get('cid'));
+				 console.log('curl    = ' + out.compute_url());*/
 			});
+
+		}); // describe feature
+
+
+		describe('sync helpers', function() {
 
 			it('should store cache informations');
 
+			it('should provide a sync to store impl');
+
+			it('should provide a sync to store impl');
+
 		}); // describe feature
+
 
 	}); // describe CUT
 }); // requirejs module

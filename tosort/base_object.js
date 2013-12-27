@@ -23,13 +23,7 @@ function(_, Backbone, when) {
 
 	// constants, all grouped under a common property for readability
 	var constants = {
-		cache_strategy_cachable: 'cachable', //< this object is allowed to be cached
-		cache_strategy_always_in_sync: 'always_in_sync', //< this object should always be in sync (as much as possible)
-
-		fetch_origin_none:   'none',   // this object was never fetched
-		fetch_origin_cache:  'cache',  // this object was last fetched from cache, it may be out of sync with the server
-		fetch_origin_server: 'server'  // this object was last fetched from the server, it is supposed up to date
-		                               // (depending on the date and status of course !)
+		// ...
 	};
 	Object.freeze(constants);
 
@@ -50,33 +44,37 @@ function(_, Backbone, when) {
 
 
 	// utility to uniformize API  XXX IN PROGRESS TOREVIEW XXX
-	// return :
-	// - a promise
-	// - resolved with [ model, response, options ]
-	// - failed with [ model, xhr, options ]
-
-	function uniformize_JjqXHRReturningFunc(func, that, arguments_) {
+	// return a promise :
+	// - which resolves to [ model, response, options ]
+	// - which fails with [ model, xhr, options ]  XXX <--- TOREVIEW
+	function uniformize_API_for_func(func, that, arguments_) {
 		// immediately launch the method so it can begin to work
-		var jqXhr = func.apply(that, arguments_);
+		// REM : may return
+		// - false
+		// - a jQXHR
+		// - a promise if func is already promise-enabled
+		var unknownResult = func.apply(that, arguments_);
 		// now prepare our interface
 		var when_deferred = when.defer();
-		if(typeof jqXhr === 'undefined') {
-			// that's bad : the called function doesn't follow the expect API
+		if(typeof unknownResult === 'undefined') {
+			// that's bad : the called function doesn't follow the expected API at all
 			console.error("Error when calling func ", func, ", returned undef...");
 			when_deferred.reject( [ this ] /* todo improve */ );
 		}
-		else if(jqXhr === false) {
+		else if(unknownResult === false) {
 			// Backbone may do that.
 			// that's precisely what we want to normalize
 			when_deferred.reject( [ this ] /* todo improve */ );
 		}
-		else if(typeof jqXhr === 'Object') {
-			// Backbone may do that.
-			// that's precisely what we want to normalize
-			when_deferred.reject( [ this ] /* todo improve */ );
+		else if(when.isPromiseLike(unknownResult)) {
+			// called func already returns a promise
+			// perfect, nothing to do !
+			return unknownResult;
 		}
 		else
 		{
+			// it's a jqXhr
+			var jqXhr = unknownResult;
 			// plug jqXhr to the deferred
 			// from Backbone doc :
 			// success and error callbacks (...) are passed (model, response, options) and (model, xhr, options) as arguments,
@@ -84,12 +82,14 @@ function(_, Backbone, when) {
 			jqXhr.done(function( model, response, options ) {
 				when_deferred.resolve( [ model, response, options ] );
 			});
-			jqXHR.fail(function( model, xhr, options ) {
+			jqXhr.otherwise(function( model, xhr, options ) {
 				when_deferred.reject( [ model, xhr, options ] );
 			});
 		}
 		return when_deferred.promise;
 	}
+
+
 
 	var BaseObject = Backbone.Model.extend({
 
@@ -114,24 +114,6 @@ function(_, Backbone, when) {
 
 			/////// Improved change monitor (in progress) ///////
 			this.declare_in_sync();
-
-			/////// cache control (in progress) ///////
-			/*this.last_fetch_origin = constants.fetch_origin_none; //< Origin of last fetch ?
-			this.last_server_fetch_date = undefined; //< TOREVIEW
-			this.cache_strategy = constants.cache_strategy_cachable; // by default
-			this.cache_max_duration = undefined; // TOREVIEW*/
-
-			/////// serialization control (in progress) ///////
-			 // attributes that should not be persisted
-			 // (usually because constants or client-only)
-			 // TOREVIEW separate client only / server only
-			 /*attributes_serialization_blacklist: [
-			 'constants', 'aggregation_parent', 'aggregation_parent_only_child',
-			 'last_fetch_origin', 'last_server_fetch_date',
-			 'cache_strategy', 'cache_max_duration',
-			 'restlink_client'
-			 ],*/
-
 
 			 /////// URL generation (in progress) ///////
 			this.url = 'basemodel'; //< (backbone) url fragment for this object (should be overriden by derived class)
@@ -231,7 +213,7 @@ function(_, Backbone, when) {
 
 
 		/////// backend utilities (in progress) ///////
-		set_restlink_client: function(client) {
+		/*set_restlink_client: function(client) {
 			this.restlink_ = client;
 		},
 		set_cache: function(cache) {
@@ -239,36 +221,8 @@ function(_, Backbone, when) {
 		},
 		set_store: function(store) {
 			this.store_ = store;
-		},
+		},*/
 
-
-		// override of default.
-		// this in an accepted technique
-		sync: function(method, model, options) {
-			console.log("Footprint sync('"+method+"',...) called with ", arguments);
-			console.log("Sync begin - Current changes = ", model.changed_attributes());
-
-			// XXX todo intercept success and error callbacks ?
-
-			var when_promise;
-			if(model.hasOwnProperty('cache_') && typeof model.cache_ !== 'undefined') {
-				// TODO hit cache if needed
-			}
-
-			if(model.hasOwnProperty('store_') && typeof model.store_ !== 'undefined') {
-				// sync to key/value store
-				when_promise = model.sync_to_store(method, model, options);
-			}
-			else if(model.hasOwnProperty('restlink_') && typeof model.restlink_ !== 'undefined') {
-				when_promise = model.sync_to_restlink(method, model, options);
-			}
-			else {
-				when_promise = uniformize_JjqXHRReturningFunc(Backbone.Model.prototype.sync, this, arguments);
-			}
-
-			console.log("Sync end - Current changes = ", model.changed_attributes());
-			return when_promise;
-		},
 
 		// specialized version to be used with a store
 		sync_to_store: function(method, model, options) {
@@ -318,34 +272,17 @@ function(_, Backbone, when) {
 		},
 
 
-		/////// API uniformization (in progress) ///////
+		/////// API uniformization ///////
 		save: function() {
-			return uniformize_JjqXHRReturningFunc(Backbone.Model.prototype.save, this, arguments);
+			return uniformize_API_for_func(Backbone.Model.prototype.save, this, arguments);
 		},
 		fetch: function() {
-			return uniformize_JjqXHRReturningFunc(Backbone.Model.prototype.fetch, this, arguments);
+			return uniformize_API_for_func(Backbone.Model.prototype.fetch, this, arguments);
+		},
+		sync: function() {
+			return uniformize_API_for_func(Backbone.Model.prototype.sync, this, arguments);
 		},
 
-		// if asked for a refresh,
-		// do this object really needs a refresh from the server
-		// or is it still valid according to its cache status ?
-		/*really_needs_refresh: function() {
-			var cache_strategy = this.get('cache_strategy');
-
-			if(cache_strategy === Constants.always_in_sync) {
-				return true;
-			}
-
-			if(typeof this.get('last_server_fetch_date') === 'undefined') {
-				return true;
-			}
-
-			// todo check cache expiration
-			var current_date = new Date;
-			// ...
-
-			return true; // for now
-		},*/
 
 		// to be overriden if needed
 		compute_id: function() {

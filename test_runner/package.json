@@ -4,9 +4,12 @@
 	"version": "1.0.0",
 	"private": true,
 	"dependencies": {
-		"underscore":              "latest",
+		"lodash":                  "latest",
 		"backbone":                "latest",
 		"when":                    "latest",
+		"extended-exceptions":     "latest",
+		"generic_store":           "latest",
+		"store.js":                "latest",
 
 		"base-objects":            "latest",
 		
