@@ -9,7 +9,7 @@ define(
 	'backbone',
 	'base-objects/backbone/extensible_model',
 	'base-objects/backbone/enhanced_change_monitor_mixin',
-	'base-objects/backbone/sync_api_uniformization_mixin',
+	'base-objects/backbone/sync_api_uniformization_mixin'
 ],
 function(_, Backbone, ExtensibleModel, BBEnhancedChangeMonitorMixin, BBSyncAPIUniformizationMixin) {
 	"use strict";
