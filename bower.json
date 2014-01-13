@@ -14,7 +14,7 @@
 	"homepage": "https://github.com/Offirmo/base-objects.js",
 	"dependencies": {
 		"backbone":         "~1.1",
-		"generic_store.js": "~0.2",
+		"generic_store.js": "latest",
 		"underscore":       "~1.5",
 		"when":             "~2.7"
 	}
