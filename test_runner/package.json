@@ -1,18 +1,9 @@
 {
-	"name": "extended-exceptions-test-runner",
-	"description": "node test runner for extended-exceptions.js",
-	"version": "1.0.0",
+	"name": "base-objects-test-runner",
+	"description": "node test runner for base-objects",
+	"version": "99.99.99",
 	"private": true,
 	"dependencies": {
-		"lodash":                  "latest",
-		"backbone":                "latest",
-		"when":                    "latest",
-		"extended-exceptions":     "latest",
-		"generic_store":           "latest",
-		"store.js":                "latest",
-
-		"base-objects":            "latest",
-		
 		"amdefine":                "latest",
 		"chai":                    "latest",
 		"mocha":                   "latest"

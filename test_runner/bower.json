@@ -1,19 +1,15 @@
 {
 	"name": "base-objects-test-runner",
-	"version": "1.0.0",
+	"version": "99.99.99",
 	"dependencies": {
-		"lodash":                  "latest",
-		"backbone":                "latest",
-		"extended-exceptions.js":  "latest",
-		"store.js":                "latest",
+		"backbone":         "~1.1",
+		"generic_store.js": "latest",
+		"underscore":       "~1.5",
+		"when":             "~2.7",
 
 		"chai":                    "latest",
 		"mocha":                   "latest",
 		"requirejs":               "latest",
-		"requirejs-domready":      "latest",
-		"when":                    "latest"
-	},
-	"temp": {
-		"generic_store.js":        "latest"
+		"requirejs-domready":      "latest"
 	}
 }

@@ -6,11 +6,12 @@ if (typeof define !== 'function') { var define = require('amdefine')(module); }
 
 define(
 [
+	'underscore',
 	'chai',
 	'when',
 	'mocha'
 ],
-function(chai, when) {
+function(_, chai, when) {
 	"use strict";
 
 	var expect = chai.expect;
