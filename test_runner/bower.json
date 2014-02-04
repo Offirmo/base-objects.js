@@ -5,7 +5,7 @@
 		"backbone":         "~1.1",
 		"generic_store.js": "latest",
 		"underscore":       "~1.5",
-		"when":             "~2.7",
+		"when":             "~2.8",
 
 		"chai":                    "latest",
 		"mocha":                   "latest",

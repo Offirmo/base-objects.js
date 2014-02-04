@@ -19,21 +19,21 @@ function(_, Backbone, when) {
 	// return a promise :
 	// - which resolves to [ model, response, options ]
 	// - which fails with [ model, xhr, options ]  XXX <--- TOREVIEW
-	function uniformize_API_for_func(func, this_, arguments_)
+	function uniformize_API_for_func(func, arguments_)
 	{
 		// immediately launch the method so it can begin to work
 		// REM : may return
-		// - false
-		// - a jQXHR
+		// - false   (original backbone)
+		// - a jQXHR (original backbone)
 		// - a promise if func is already promise-enabled
 		var unknownResult = undefined;
 		try {
-			unknownResult = func.apply(this_, arguments_);
+			unknownResult = func.apply(this, arguments_);
 		}
 		catch(e) {
 			// Yes, we choose to catch exceptions and constrive them into a promise failure.
 			// This is a choice. Make it configurable ?
-			unknownResult = e;
+			return when.reject(e);
 		}
 
 		if(when.isPromiseLike(unknownResult)) {
@@ -50,44 +50,45 @@ function(_, Backbone, when) {
 		if(typeof unknownResult === 'undefined') {
 			// that's bad : the called function doesn't follow the expected API at all
 			console.error("Error when calling func ", func, ", returned undef...");
-			deferred.reject( [ this_, new Error("From Backbone sync uniformization : underlying sync func didn't follow Backbone API !") ] /* todo improve */ );
+			deferred.reject( new Error("From Backbone sync uniformization : underlying sync func didn't follow Backbone API !") );
 		}
 		else if(unknownResult === false) {
 			// Backbone may do that.
 			// that's precisely what we want to normalize
-			deferred.reject( [ this_, new Error("From Backbone sync uniformization : underlying sync func returned false !") ] /* todo improve */ );
+			deferred.reject( new Error("From Backbone sync uniformization : underlying sync func returned false !") );
 		}
 		else if(_.isObject( unknownResult ) && unknownResult instanceof Error) {
+			var error = unknownResult;
 			// There was an exception during the call
-			deferred.reject( [ this_, unknownResult ] /* todo improve */ );
+			deferred.reject( error );
 		}
 		else
 		{
 			// it's a jqXhr
 			var jqXhr = unknownResult;
 			// plug jqXhr to the deferred
-			// from Backbone doc :
-			// success and error callbacks (...) are passed (model, response, options) and (model, xhr, options) as arguments,
-
-			jqXhr.done(function( model, response, options ) {
-				deferred.resolve( [ model, response, options ] );
+			// from Backbone doc http://api.jquery.com/jQuery.ajax/#jqXHR
+			jqXhr.done(function( data, textStatus, jqXHR ) {
+				// TOREVIEW
+				deferred.resolve( data );
 			});
-			jqXhr.otherwise(function( model, xhr, options ) {
-				deferred.reject( [ model, new Error("From Backbone sync uniformization : underlying sync func didn't succeed eventually !") ] /* todo improve */ );
+			jqXhr.otherwise(function( jqXHR, textStatus, errorThrown ) {
+				deferred.reject( errorThrown );
 			});
 		}
 
 		// special @see enhanced change monitor
-		if(this_['declare_in_sync']) {
+		if(this.declare_in_sync) {
 			promise.then(function(){
 				// any success (XXX even sync() ?) means object is in sync
-				this_.declare_in_sync();
-			})
+				this.declare_in_sync();
+			});
 		}
 
 		return promise;
 	}
 
+	// will be called in context of a BB Model
 	function not_implemented_find() {
 		var deferred = when.defer();
 		deferred.reject( [ this, new Error("From Backbone sync uniformization : find() not available for this model !") ] );
@@ -113,21 +114,20 @@ function(_, Backbone, when) {
 
 			// encapsulate them
 			prototype.save = function() {
-				return uniformize_API_for_func(original_save, this, arguments);
+				return uniformize_API_for_func.call(this, original_save, arguments);
 			};
 			prototype.fetch = function() {
-				return uniformize_API_for_func(original_fetch, this, arguments);
+				return uniformize_API_for_func.call(this, original_fetch, arguments);
 			};
 			prototype.destroy = function() {
-				return uniformize_API_for_func(original_destroy, this, arguments);
+				return uniformize_API_for_func.call(this, original_destroy, arguments);
 			};
-			prototype.sync = function() {
-				return uniformize_API_for_func(original_sync, this, arguments);
+			// This one is not in Backbone.
+			prototype.find = function() {
+				var err = new Error("find() is not implemented for now !");
+				err.http_status_hint = 501;
+				return when.reject(err);
 			};
-			// This one is not in Backbone
-			if(!('find' in prototype)) {
-				prototype.find = not_implemented_find;
-			}
 		}
 	};
 

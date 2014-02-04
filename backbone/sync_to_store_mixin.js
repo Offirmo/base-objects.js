@@ -26,15 +26,18 @@ function(_, Backbone, when) {
 			// just in case
 			try {
 				var unique_record_id = model.url(); // we use the unique url as an id
+				var data; // temp
 
 				if(method === "read") {
 					if(typeof unique_record_id === 'undefined')
 						throw new Error("sync() to store : can't fetch without id !");
-					var data = model.store_.get(unique_record_id);
+					data = model.store_.get(unique_record_id);
 					// apply fetched data
 					if(typeof data === 'undefined') {
 						// not found
-						throw new Error("sync() to store : read : record not found !");
+						var err = new Error("sync() to store : read : record not found !");
+						err.http_status_hint = 404; // hint to help caller
+						throw err;
 					}
 					else if(typeof data !== 'object') {
 						// WAT ?
@@ -48,7 +51,7 @@ function(_, Backbone, when) {
 						model.set(data);
 						// all in sync
 						model.declare_in_sync();
-						deferred.resolve( [model, undefined, options] );
+						deferred.resolve( model.attributes );
 					}
 				}
 				else if(method === "create") {
@@ -58,15 +61,17 @@ function(_, Backbone, when) {
 					var unique_persist_id = model.url(); // we use the unique url as an id
 					model.store_.set(unique_persist_id, model.attributes);
 					model.declare_in_sync();
-					deferred.resolve( [model, undefined, options] );
+					deferred.resolve( model.attributes );
 				}
 				else if(method === "update") {
 					if(typeof unique_record_id === 'undefined')
 						throw new Error("sync() to store : can't update without id !");
-					var data = model.store_.get(unique_record_id);
+					data = model.store_.get(unique_record_id);
 					if(typeof data !== 'object') {
 						// WAT ?
-						throw new Error("sync() to store : update : no existing record !");
+						var err = new Error("sync() to store : update : no existing record !");
+						err.http_status_hint = 404; // hint to help caller
+						throw err;
 					}
 					else {
 						_.extend(data, model.attributes);
@@ -74,7 +79,7 @@ function(_, Backbone, when) {
 					}
 					model.store_.set(unique_record_id, data);
 					model.declare_in_sync();
-					deferred.resolve( [model, undefined, options] );
+					deferred.resolve( model.attributes );
 				}
 				else if(method === "delete") {
 					if(typeof unique_record_id === 'undefined')
@@ -82,27 +87,24 @@ function(_, Backbone, when) {
 					model.store_.set(unique_record_id, undefined);
 					model.id = undefined; // really ?
 					model.declare_fully_out_of_sync(); // since no longer saved on server
-					deferred.resolve( [model, undefined, options] );
+					deferred.resolve( model ); // TOREVIEW
 				}
 				else {
 					throw new Error("sync() to store : unrecognized method !");
 				}
 			}
 			catch(e) {
-				deferred.reject( [ model, e ] );
+				deferred.reject( e );
 			}
 
 			//console.log("sync_to_store end - Current changes = ", model.changed_attributes());
 			return deferred.promise;
-		},
-
-		find: function(criteria) {
-			var deferred = when.defer();
-
-			deferred.reject( [this, new Error("not implemented !")] ) ;
-
-			return deferred.promise;
 		}
+
+		/*
+		find: function(criteria) {
+			return when.reject( new Error("not implemented !") ) ;
+		}*/
 	};
 
 	/////// Final ///////

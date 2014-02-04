@@ -1,6 +1,6 @@
 {
 	"name": "base-objects",
-	"version": "0.6.0-beta",
+	"version": "0.7.0-alpha.1",
 	"description": "Base javascript objects with convenient inheritance and some shared features for node & browser, AMD",
 	"keywords": "inheritance, browser, server",
 	"license": "public domain",
@@ -15,7 +15,7 @@
 		"backbone":      "~1.1",
 		"generic_store": "~0.2",
 		"underscore":    "~1.5",
-		"when":          "~2.7"
+		"when":          "~2.8"
 	},
 	"engines": {
 		"node": ">=0.10.0"

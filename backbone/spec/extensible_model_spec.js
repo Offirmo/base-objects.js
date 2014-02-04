@@ -42,6 +42,7 @@ function(chai, _, Backbone, CUT) {
 
 				// 1st object
 				var TestModel1 = CUT.extend();
+				// object variant
 				CUT.add_defaults(TestModel1.prototype, {
 					foo: 'bar',
 					toto: 'titi'

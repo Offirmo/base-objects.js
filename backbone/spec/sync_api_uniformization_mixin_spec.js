@@ -44,73 +44,68 @@ function(chai, _, Backbone, when, CUT) {
 
 		describe('', function() {
 
-			it('should work', function(signalAsyncTestFinished) {
+			it('should work on a disconnected HTTP endpoint', function(signalAsyncTestFinished) {
 				var MUT = Backbone.Model.extend({});
 				CUT.mixin(MUT.prototype);
 
 				var out = new MUT();
 
 				// now test all funcs
-				var p_save        = out.save();
-				var save_check    = when.defer();
-				var p_fetch       = out.fetch();
-				var fetch_check   = when.defer();
-				var p_destroy     = out.destroy();
-				var destroy_check = when.defer();
-				var p_sync        = out.sync();
-				var sync_check    = when.defer();
-				var p_find        = out.find();
-				var find_check    = when.defer();
+				var raw_save        = out.save();
+				var raw_fetch       = out.fetch();
+				var raw_destroy     = out.destroy();
+				//var p_sync        = out.sync();
+				var raw_find        = out.find();
 
-				expect( when.isPromiseLike( p_save    ) ).to.be.true;
-				expect( when.isPromiseLike( p_fetch   ) ).to.be.true;
-				expect( when.isPromiseLike( p_destroy ) ).to.be.true;
-				expect( when.isPromiseLike( p_sync    ) ).to.be.true;
-				expect( when.isPromiseLike( p_find    ) ).to.be.true;
+				expect( when.isPromiseLike( raw_save    ) ).to.be.true;
+				expect( when.isPromiseLike( raw_fetch   ) ).to.be.true;
+				expect( when.isPromiseLike( raw_destroy ) ).to.be.true;
+				//expect( when.isPromiseLike( p_sync    ) ).to.be.true;
+				expect( when.isPromiseLike( raw_find    ) ).to.be.true;
 
-				p_save.otherwise(function(arr) {
+				var p_save = raw_save.then(function() { throw new Error("raw_save succeeded unexpectedly !"); },
+				function(e) {
+					expect( e ).to.be.an.instanceof( Error );
+					// backbone exception proving that the original backbone func was called
+					expect( e.message ).to.eq( 'A "url" property or function must be specified' );
+				});
+				var p_fetch = raw_fetch.then(function() { throw new Error("raw_fetch succeeded unexpectedly !"); },
+				function(e) {
+					expect( e ).to.be.an.instanceof( Error );
+					// backbone exception proving that the original backbone func was called
+					expect( e.message ).to.eq( 'A "url" property or function must be specified' );
+				});
+				var p_destroy = raw_destroy.then(function() { throw new Error("raw_destroy succeeded unexpectedly !"); },
+				function(e) {
+					expect( e ).to.be.an.instanceof( Error );
+					// backbone exception proving that the original backbone func was called
+					expect( e.message ).to.eq( 'From Backbone sync uniformization : underlying sync func returned false !' );
+				});
+				/*p_sync.otherwise(function(arr) {
 					expect( arr.length ).to.eq(2);
 					expect( arr[1] ).to.be.an.instanceof( Error );
 					// backbone exception proving that the original backbone func was called
 					expect( arr[1].message ).to.eq( 'A "url" property or function must be specified' );
-					save_check.resolve(1);
-				});
-				p_fetch.otherwise(function(arr) {
-					expect( arr.length ).to.eq(2);
-					expect( arr[1] ).to.be.an.instanceof( Error );
+				});*/
+				var p_find = raw_find.then(function() { throw new Error("raw_find succeeded unexpectedly !"); },
+				function(e) {
+					expect( e ).to.be.an.instanceof( Error );
 					// backbone exception proving that the original backbone func was called
-					expect( arr[1].message ).to.eq( 'A "url" property or function must be specified' );
-					fetch_check.resolve(1);
-				});
-				p_destroy.otherwise(function(arr) {
-					expect( arr.length ).to.eq(2);
-					expect( arr[1] ).to.be.an.instanceof( Error );
-					// backbone exception proving that the original backbone func was called
-					expect( arr[1].message ).to.eq( 'From Backbone sync uniformization : underlying sync func returned false !' );
-					destroy_check.resolve(1);
-				});
-				p_sync.otherwise(function(arr) {
-					expect( arr.length ).to.eq(2);
-					expect( arr[1] ).to.be.an.instanceof( Error );
-					// backbone exception proving that the original backbone func was called
-					expect( arr[1].message ).to.eq( 'A "url" property or function must be specified' );
-					sync_check.resolve(1);
-				});
-				p_find.otherwise(function(arr) {
-					expect( arr.length ).to.eq(2);
-					expect( arr[1] ).to.be.an.instanceof( Error );
-					// backbone exception proving that the original backbone func was called
-					expect( arr[1].message ).to.eq( "From Backbone sync uniformization : find() not available for this model !" );
-					find_check.resolve(1);
+					expect( e.message ).to.eq( "find() is not implemented for now !" );
 				});
 
 				when
-					.join(save_check.promise, fetch_check.promise, destroy_check.promise, sync_check.promise, find_check.promise)
+					.join(p_save, p_fetch, p_destroy, /*sync_check.promise,*/ p_find)
 					.then(function() {
 						signalAsyncTestFinished();
+					},
+					function(e) {
+						signalAsyncTestFinished( e );
 					}); // no direct call to signalAsyncTestFinished since it doesn't like params
 			});
 
+			// alas, it's hard to unit test...
+			it('should work on a connected HTTP endpoint');
 
 			it('should encapsulate immediate ancestor funcs', function(signalAsyncTestFinished) {
 				var calls = [];
@@ -149,11 +144,12 @@ function(chai, _, Backbone, when, CUT) {
 				expect( when.isPromiseLike( p_destroy ) ).to.be.true;
 				expect( when.isPromiseLike( p_sync    ) ).to.be.true;
 
-				when
-					.join(p_save, p_fetch, p_destroy, p_sync)
-					.then(function() {
-						signalAsyncTestFinished();
-					}); // no direct call to signalAsyncTestFinished since it doesn't like params
+				when.join(p_save, p_fetch, p_destroy, p_sync).then(function() {
+					signalAsyncTestFinished();
+				},
+				function(e) {
+					signalAsyncTestFinished(e);
+				});
 			});
 
 		});

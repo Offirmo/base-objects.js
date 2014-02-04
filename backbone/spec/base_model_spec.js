@@ -4,13 +4,14 @@ define(
 [
 	'chai',
 	'backbone',
+	'when',
 	'base-objects/backbone/extensible_model',
 
 	'base-objects/backbone/base_model',
 
 	'mocha'
 ],
-function(chai, Backbone, ExtensibleModel, CUT) {
+function(chai, Backbone, when, ExtensibleModel, CUT) {
 	"use strict";
 
 	var expect = chai.expect;
@@ -43,14 +44,25 @@ function(chai, Backbone, ExtensibleModel, CUT) {
 				expect( out ).to.respondTo('declare_in_sync');
 			});
 
-			it('should include sync() API Uniformization', function() {
+			it('should include sync() API Uniformization', function(signalAsyncTestFinished) {
 				var out = new CUT();
-				try {
-					var promise = out.save(); // should fail of course
-				}
-				catch(e){
-					expect( out ).to.be.an.instanceof(Backbone.Model);
-				}
+
+				var promise = out.save(); // should fail of course
+
+				expect( when.isPromiseLike(promise) );
+
+				promise.then(function() {
+					signalAsyncTestFinished(new Error("Promise succeeded unexpectedly !"));
+				},
+				function(e) {
+					try {
+						expect(e.message ).to.equals( 'A "url" property or function must be specified' );
+						signalAsyncTestFinished();
+					}
+					catch(e) {
+						signalAsyncTestFinished(e);
+					}
+				})
 			});
 
 		});
