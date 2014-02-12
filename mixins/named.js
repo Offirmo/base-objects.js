@@ -1,4 +1,4 @@
-/* A mixin with generic start/stop methods
+/* A mixin for adding a denomination to an object
  * ready to be prototypically added to an object / prototype
  */
 if (typeof define !== 'function') { var define = require('amdefine')(module); }
@@ -24,8 +24,8 @@ function(_) {
 
 	////////////////////////////////////
 	//defaults. = ;
-	defaults.started_ = false;
-	methods.initialize_startable = function() {
+	defaults.denomination_ = "Anonymous";
+	methods.initialize_named = function() {
 		_.defaults( this, defaults );
 	};
 
@@ -35,16 +35,11 @@ function(_) {
 
 
 	////////////////////////////////////
-	methods.startup = function() {
-		// TODO check consistency
-		this.started_ = true;
+	methods.set_denomination = function(name) {
+		this.denomination_ = name;
 	};
-	methods.shutdown = function() {
-		// TODO check consistency
-		this.started_ = false;
-	};
-	methods.is_started = function() {
-		return this.started_;
+	methods.get_denomination = function() {
+		return this.denomination_;
 	};
 
 
@@ -54,8 +49,8 @@ function(_) {
 	Object.freeze(exceptions);
 	Object.freeze(methods);
 
-	var DefinedClass = function OffirmoStartableObject() {
-		methods.initialize_startable.apply(this, arguments);
+	var DefinedClass = function OffirmoNamedObject() {
+		methods.initialize_named.apply(this, arguments);
 	};
 
 	DefinedClass.prototype.constants  = constants;
@@ -66,11 +61,11 @@ function(_) {
 	////////////////////////////////////
 	return {
 		// objects are created via a factory, more future-proof
-		make_new : function() { return new DefinedClass(); },
+		'make_new': function() { return new DefinedClass(); },
 		// common use : prototypal inheritance
 		// note : extended object still have to call the init function !
 		mixin : function(prototype) { _.defaults(prototype, methods); },
-		// exposing these allows various inheritances
+		// exposing these allows inheritance
 		'constants'  : constants,
 		'exceptions' : exceptions,
 		'defaults'   : defaults,
