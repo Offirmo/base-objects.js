@@ -15,9 +15,9 @@ STILL IN PROGRESS - MISSING FEATURES - API MAY CHANGE
 Introduction
 ------------
 
-1) Extensions to Backbone.Model
-2) Common Backbone sync() implementations
-3) Convenient mixins to add to your objects (Backbone or not)
+1. Extensions to Backbone.Model
+2. Common Backbone sync() implementations
+3. Convenient mixins to add to your objects (Backbone or not)
 
 License : public domain (http://unlicense.org/)
 

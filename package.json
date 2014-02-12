@@ -1,29 +1,29 @@
 {
-	"name": "base-objects",
-	"version": "0.7.0-alpha.1",
-	"description": "Base javascript objects with convenient inheritance and some shared features for node & browser, AMD",
-	"keywords": "inheritance, browser, server",
-	"license": "public domain",
-	"author": "Offirmo <offirmo.net@gmail.com> (http://offirmo.net)",
-	"homepage": "https://github.com/Offirmo/base-objects.js",
-	"repository": {
-		"type": "git",
-		"url":  "https://github.com/Offirmo/base-objects.js.git"
-	},
-	"dependencies": {
-		"amdefine":      "~0.1",
-		"backbone":      "~1.1",
-		"generic_store": "~0.2",
-		"underscore":    "~1.5",
-		"when":          "~2.8"
-	},
-	"engines": {
-		"node": ">=0.10.0"
-	},
-	"bugs": {
-		"url": "https://github.com/Offirmo/base-objects.js/issues"
-	},
-	"scripts": {
-		"test": "npm install && cd test_runner && make"
-	}
+  "name": "base-objects",
+  "version": "0.7.1-alpha",
+  "description": "Base javascript objects with convenient inheritance and some shared features for node & browser, AMD",
+  "keywords": "inheritance, browser, server",
+  "license": "public domain",
+  "author": "Offirmo <offirmo.net@gmail.com> (http://offirmo.net)",
+  "homepage": "https://github.com/Offirmo/base-objects.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Offirmo/base-objects.js.git"
+  },
+  "dependencies": {
+    "amdefine": "~0.1",
+    "backbone": "~1.1",
+    "generic_store": "~0.2",
+    "underscore": "~1.6",
+    "when": "~2.8"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "bugs": {
+    "url": "https://github.com/Offirmo/base-objects.js/issues"
+  },
+  "scripts": {
+    "test": "npm install && cd test_runner && make"
+  }
 }

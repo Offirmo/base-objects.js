@@ -1,21 +1,21 @@
 {
-	"name": "base-objects.js",
-	"version": "0.7.0-alpha.1",
-	"description": "Base javascript objects with convenient inheritance and some shared features for node & browser, AMD",
-	"keywords": [
-		"inheritance",
-		"browser",
-		"server"
-	],
-	"license": "public domain",
-	"authors": [
-		"Offirmo <offirmo.net@gmail.com>"
-	],
-	"homepage": "https://github.com/Offirmo/base-objects.js",
-	"dependencies": {
-		"backbone":         "~1.1",
-		"generic_store.js": "latest",
-		"underscore":       "~1.5",
-		"when":             "~2.8"
-	}
+  "name": "base-objects.js",
+  "version": "0.7.1-alpha",
+  "description": "Base javascript objects with convenient inheritance and some shared features for node & browser, AMD",
+  "keywords": [
+    "inheritance",
+    "browser",
+    "server"
+  ],
+  "license": "public domain",
+  "authors": [
+    "Offirmo <offirmo.net@gmail.com>"
+  ],
+  "homepage": "https://github.com/Offirmo/base-objects.js",
+  "dependencies": {
+    "backbone": "~1.1",
+    "generic_store.js": "latest",
+    "underscore": "~1.6",
+    "when": "~2.8"
+  }
 }
