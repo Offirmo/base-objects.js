@@ -16,7 +16,7 @@ function(chai, Backbone, when, ExtensibleModel, CUT) {
 
 	var expect = chai.expect;
 	//chai.should();
-	chai.Assertion.includeStack = true; // defaults to false
+	chai.config.includeStack = true; // defaults to false
 
 
 	describe('Backbone Base Model', function() {

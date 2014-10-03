@@ -1,5 +1,7 @@
 /* Reimplementation of save(), fetch(), destroy and sync() of Backbone.Model,
  * for them to uniformly returns promises (when.js)
+ *
+ *
  * NOTE : exceptions thrown by the original function will be caught
  *        and turned into a promise rejection.
  */
@@ -12,7 +14,7 @@ define(
 	'when'
 ],
 function(_, Backbone, when) {
-	"use strict";
+	'use strict';
 
 
 	// utility to uniformize API  XXX IN PROGRESS TOREVIEW XXX
@@ -49,13 +51,13 @@ function(_, Backbone, when) {
 		// now examine returned value
 		if(typeof unknownResult === 'undefined') {
 			// that's bad : the called function doesn't follow the expected API at all
-			console.error("Error when calling func ", func, ", returned undef...");
-			deferred.reject( new Error("From Backbone sync uniformization : underlying sync func didn't follow Backbone API !") );
+			console.error('Error when calling func ', func, ', returned undef...');
+			deferred.reject( new Error('From Backbone sync uniformization : underlying sync func didn´t follow Backbone API !') );
 		}
 		else if(unknownResult === false) {
 			// Backbone may do that.
 			// that's precisely what we want to normalize
-			deferred.reject( new Error("From Backbone sync uniformization : underlying sync func returned false !") );
+			deferred.reject( new Error('From Backbone sync uniformization : underlying sync func returned false !') );
 		}
 		else if(_.isObject( unknownResult ) && unknownResult instanceof Error) {
 			var error = unknownResult;
@@ -91,7 +93,7 @@ function(_, Backbone, when) {
 	// will be called in context of a BB Model
 	function not_implemented_find() {
 		var deferred = when.defer();
-		deferred.reject( [ this, new Error("From Backbone sync uniformization : find() not available for this model !") ] );
+		deferred.reject( [ this, new Error('From Backbone sync uniformization : find() not available for this model !') ] );
 		return deferred.promise;
 	}
 
@@ -101,7 +103,7 @@ function(_, Backbone, when) {
 
 			// check if given param is really a prototype (common error)
 			if(!prototype.hasOwnProperty('constructor'))
-				throw new Error("Backbone sync uniformization mixin() must be passed a prototype !");
+				throw new Error('Backbone sync uniformization mixin() must be passed a prototype !');
 
 			// check if this object was already mixed ?
 
@@ -124,7 +126,7 @@ function(_, Backbone, when) {
 			};
 			// This one is not in Backbone.
 			prototype.find = function() {
-				var err = new Error("find() is not implemented for now !");
+				var err = new Error('find() is not implemented for now !');
 				err.http_status_hint = 501;
 				return when.reject(err);
 			};

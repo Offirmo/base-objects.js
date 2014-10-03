@@ -24,6 +24,6 @@
     "url": "https://github.com/Offirmo/base-objects.js/issues"
   },
   "scripts": {
-    "test": "npm install && cd test_runner && make"
+    "test": "npm install; cd test_runner; make"
   }
 }

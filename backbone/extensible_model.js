@@ -1,5 +1,6 @@
 /* Derived from Backbone.Model,
  * a more extensible Backbone object :
+ * - extensible exceptions
  * - extensible defaults
  * - extensible init
  * - extensible validation
@@ -82,6 +83,7 @@ function(_, Backbone) {
 			// already present, do nothing
 		}
 		else {
+			// create and inherit from parents (if any)
 			var existing = prototype[property_name]; // may be undefined if none
 			if(_.isArray(existing)) {
 				prototype[property_name] = existing.concat(); // duplicate parent
@@ -91,14 +93,52 @@ function(_, Backbone) {
 			}
 		}
 	}
+	function ensure_own_inherited_object_property(prototype, property_name) {
+		debugger;
+		if(prototype.hasOwnProperty(property_name)) {
+			// already present, do nothing
+		}
+		else {
+			// create and inherit from parents (if any)
+			var existing = prototype[property_name]; // may be undefined if none
+			if(_.isObject(existing)) {
+				prototype[property_name] = _.clone(existing); // duplicate parent
+			}
+			else {
+				prototype[property_name] = {};
+			}
+		}
+	}
 
-	// add 'static' functions
+	// 'static' functions
+
+
+	ExtensibleModel.add_exception = function(prototype, exception_contructor, optional_name) {
+		debugger;
+		var test_err = new exception_contructor();
+		if(! test_err instanceof Error)
+			throw new Error("Backbone Extensible Model : this func must be passed a exception prototype !");
+		var exception_name = test_err.name || optional_name;
+		if(! (exception_name && _.isString(exception_name)))
+			throw new Error("Backbone Extensible Model : given exception must have a name !");
+
+		// check if given param is really a prototype (common error)
+		if(!prototype.hasOwnProperty('constructor'))
+			throw new Error("Backbone Extensible Model : this func must be passed a prototype !");
+		// check the other param
+		if(!_.isFunction(exception_contructor))
+			throw new Error("Backbone Extensible Model : this func must be passed a correct exception !");
+
+		ensure_own_inherited_object_property(prototype, 'exceptions'); // no _, directly accessible
+		prototype.exceptions[exception_name] = exception_contructor;
+	};
+
 	ExtensibleModel.add_defaults = function(prototype, defaults) {
 
 		// check if given param is really a prototype (common error)
 		if(!prototype.hasOwnProperty('constructor'))
 			throw new Error("Backbone Extensible Model : this func must be passed a prototype !");
-		// check tho other param
+		// check the other param
 		if(!(_.isObject(defaults) || _.isFunction(defaults)))
 			throw new Error("Backbone Extensible Model : this func must be passed a correct default !");
 
@@ -111,7 +151,7 @@ function(_, Backbone) {
 		// check if given param is really a prototype (common error)
 		if(!prototype.hasOwnProperty('constructor'))
 			throw new Error("Backbone Extensible Model : this func must be passed a prototype !");
-		// check tho other param
+		// check the other param
 		if(!_.isFunction(init_fn))
 			throw new Error("Backbone Extensible Model : this func must be passed a function !");
 
@@ -124,7 +164,7 @@ function(_, Backbone) {
 		// check if given param is really a prototype (common error)
 		if(!prototype.hasOwnProperty('constructor'))
 			throw new Error("Backbone Extensible Model : this func must be passed a prototype !");
-		// check tho other param
+		// check the other param
 		if(!_.isFunction(validation_fn))
 			throw new Error("Backbone Extensible Model : this func must be passed a function !");
 

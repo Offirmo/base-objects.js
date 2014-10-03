@@ -5,12 +5,13 @@ define(
 	'chai',
 	'underscore',
 	'backbone',
+	'extended-exceptions',
 
 	'base-objects/backbone/extensible_model',
 
 	'mocha'
 ],
-function(chai, _, Backbone, CUT) {
+function(chai, _, Backbone, EE, CUT) {
 	"use strict";
 
 	var expect = chai.expect;
@@ -32,6 +33,44 @@ function(chai, _, Backbone, CUT) {
 				var out = new CUT();
 				out.should.be.an.instanceof(CUT);
 				out.should.be.an.instanceof(Backbone.Model);
+			});
+
+		});
+
+		describe('exceptions extension', function() {
+
+			it('should allow easy addition and composition of exceptions', function(){
+
+				// 1st object
+				var TestModel1 = CUT.extend();
+				var e1 = EE.create_custom_error('exception1', EE.OutOfRange);
+				CUT.add_exception(TestModel1.prototype, e1);
+
+				// 2nd object inheriting from its parent
+				var TestModel2 = TestModel1.extend();
+				var e2 = EE.create_custom_error('exception2', EE.IllegalState);
+				CUT.add_exception(TestModel2.prototype, e2);
+
+
+				// testing here ensure that TestModel1.prototype
+				// was not affected by setup of TestModel2
+				var out1 = new TestModel1;
+				out1.should.be.an.instanceof(TestModel1);
+				out1.should.be.an.instanceof(CUT);
+				out1.should.be.an.instanceof(Backbone.Model);
+				out1.exceptions.should.deep.equals({
+					exception1: e1
+				});
+
+				var out2 = new TestModel2;
+				out2.should.be.an.instanceof(TestModel2);
+				out2.should.be.an.instanceof(TestModel1);
+				out2.should.be.an.instanceof(CUT);
+				out2.should.be.an.instanceof(Backbone.Model);
+				out2.exceptions.should.deep.equals({
+					exception1: e1,
+					exception2: e2
+				});
 			});
 
 		});

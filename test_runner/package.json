@@ -6,6 +6,7 @@
 	"dependencies": {
 		"amdefine":                "latest",
 		"chai":                    "latest",
-		"mocha":                   "latest"
+		"mocha":                   "latest",
+		"extended_exceptions":     "latest"
 	}
 }

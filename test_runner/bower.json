@@ -6,6 +6,7 @@
 		"generic_store.js": "latest",
 		"underscore":       "~1.5",
 		"when":             "~2.8",
+		"extended_exceptions.js":  "latest",
 
 		"chai":                    "latest",
 		"mocha":                   "latest",

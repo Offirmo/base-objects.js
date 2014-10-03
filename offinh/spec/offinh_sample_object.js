@@ -15,7 +15,7 @@ define(
 	'underscore'
 ],
 function(_) {
-	"use strict";
+	'use strict';
 
 
 	////////////////////////////////////
